@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Book, Pencil, Palette, Brain, BookOpen, ChevronRight, Settings, Plus, X, Edit2 } from 'lucide-react';
+import { Book, Pencil, Palette, Brain, BookOpen, ChevronRight, Bot, Plus, X, Edit2 } from 'lucide-react';
+import './App.css';
 
 export default function HomePage() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -17,8 +18,7 @@ export default function HomePage() {
   const [selectedPageId, setSelectedPageId] = useState(null);
 
   // A4 size ratio in CSS (width:height = 1:√2 = 1:1.414)
-  const a4Width = 595; // in pixels at 72dpi
-  const a4Height = 842; // in pixels at 72dpi
+
 
   // Available activities for the sidebar with unique IDs
   const initialActivities = [
@@ -164,102 +164,82 @@ export default function HomePage() {
 
   if (currentPage === 'customizer') {
     return (
-      <div className="min-h-screen bg-white" 
-        style={{
-          backgroundImage: "linear-gradient(#e6e6e6 1px, transparent 1px), linear-gradient(90deg, #e6e6e6 1px, transparent 1px)",
-          backgroundSize: "20px 20px"
-        }}>
-        <nav className="bg-blue-600 p-4 text-white shadow-md">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-2xl font-bold">KidActivity BookCreator</h1>
-            <button 
-              onClick={() => setCurrentPage('home')}
-              className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors"
-            >
-              Back to Home
-            </button>
-          </div>
-        </nav>
-
-        <div className="container mx-auto p-4 flex h-screen">
+      <div className="grid-bg" style={{ minHeight: '100vh', width: '100%' }}>
+        <div className="customizer-container">
           {/* Main Book Pages Area */}
-          <div className="flex-grow flex flex-col items-center overflow-y-auto">
-            {bookPages.map((page) => (
-              <div 
-                key={page.id}
-                className="mb-8 bg-white shadow-lg border-2 border-gray-300 p-4 rounded relative"
-                style={{ 
-                  width: `${a4Width * 0.5}px`, 
-                  height: `${a4Height * 0.5}px`,
-                  aspectRatio: '1/1.414'
-                }}
-                onDrop={(e) => handleDrop(e, page.id)}
-                onDragOver={handleDragOver}
+          <div className="pages-container">
+            <div className="pages-inner">
+              {bookPages.map((page) => (
+                <div 
+                  key={page.id}
+                  className="page"
+                  onDrop={(e) => handleDrop(e, page.id)}
+                  onDragOver={handleDragOver}
+                >
+                  <h2 className="page-title">Page {page.id}</h2>
+                  {page.activity ? (
+                    <div 
+                      className={`activity-preview ${page.activity.color}`}
+                      onClick={() => handleActivityClick(page.id, page.activity)}
+                    >
+                      <button 
+                        className="activity-remove"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeActivityFromPage(page.id);
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                      {renderIcon(page.activity.icon, 48)}
+                      <span className="activity-name mt-2">{page.activity.name}</span>
+                      {page.activity.content && (
+                        <div className="mt-4 text-sm bg-white bg-opacity-70 p-2 rounded w-full">
+                          {page.activity.content.substring(0, 30)}
+                          {page.activity.content.length > 30 ? '...' : ''}
+                        </div>
+                      )}
+                      <button 
+                        className="btn btn-primary btn-lg btn-icon mt-4"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleActivityClick(page.id, page.activity);
+                        }}
+                      >
+                        <Edit2 size={16} /> Edit Content
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="activity-placeholder">
+                      <p>Drag an activity here</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <button 
+                onClick={addNewPage}
+                className="add-page-btn btn btn-accent btn-lg btn-icon"
               >
-                <h2 className="text-center text-lg font-semibold border-b pb-2 mb-4">Page {page.id}</h2>
-                
-                {page.activity ? (
-                  <div 
-                    className={`${page.activity.color} p-6 rounded-lg flex flex-col items-center justify-center m-2 shadow-md relative w-3/4 mx-auto h-3/4`}
-                    onClick={() => handleActivityClick(page.id, page.activity)}
-                  >
-                    <button 
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeActivityFromPage(page.id);
-                      }}
-                    >
-                      <X size={16} />
-                    </button>
-                    {renderIcon(page.activity.icon, 48)}
-                    <span className="mt-2 font-semibold">{page.activity.name}</span>
-                    {page.activity.content && (
-                      <div className="mt-4 text-sm bg-white bg-opacity-70 p-2 rounded w-full">
-                        {page.activity.content.substring(0, 30)}
-                        {page.activity.content.length > 30 ? '...' : ''}
-                      </div>
-                    )}
-                    <button 
-                      className="mt-4 bg-blue-500 text-white rounded-lg p-2 flex items-center"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleActivityClick(page.id, page.activity);
-                      }}
-                    >
-                      <Edit2 size={16} className="mr-1" /> Edit Content
-                    </button>
-                  </div>
-                ) : (
-                  <div className="h-4/5 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded-lg">
-                    <p>Drag an activity here</p>
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            {/* Add Page Button */}
-            <button 
-              onClick={addNewPage}
-              className="mb-16 bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center shadow-md hover:bg-blue-700 transition-colors"
-            >
-              <Plus size={20} className="mr-2" /> Add New Page
-            </button>
+                <Plus size={20} /> Add New Page
+              </button>
+            </div>
           </div>
-
           {/* Sidebar with Activities */}
-          <div className="w-64 bg-white shadow-lg p-4 ml-4 rounded-lg h-full overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4 text-center text-blue-600">Activities</h2>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="tools-sidebar">
+            <div className="sidebar-header">
+              <h2 className="text-xl font-bold text-purple-600">Activities</h2>
+            </div>
+            <div className="activity-grid">
               {availableActivities.map(activity => (
                 <div 
                   key={activity.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, activity)}
-                  className={`${activity.color} p-4 rounded-lg cursor-move flex items-center justify-center h-20 w-20 shadow-md hover:shadow-lg transition-shadow`}
+                  className={`activity-item ${activity.color}`}
                   title={activity.name}
                 >
-                  {renderIcon(activity.icon)}
+                  <div className="activity-icon">{renderIcon(activity.icon)}</div>
+                  <div className="activity-name">{activity.name}</div>
                 </div>
               ))}
             </div>
@@ -268,252 +248,236 @@ export default function HomePage() {
                 <p>All activities have been used!</p>
                 <button 
                   onClick={resetActivities}
-                  className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
+                  className="btn btn-primary btn-lg mt-4"
                 >
                   Reset Activities
                 </button>
               </div>
             )}
           </div>
+          {/* Activity Content Editor Modal */}
+          {selectedActivityForEdit && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <span className="modal-title">{renderIcon(selectedActivityForEdit.icon, 24)} Edit {selectedActivityForEdit.name} Content</span>
+                  <button 
+                    onClick={() => {
+                      setSelectedActivityForEdit(null);
+                      setSelectedPageId(null);
+                      setActivityContent('');
+                    }}
+                    className="modal-close"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Activity Content or Instructions</label>
+                  <textarea
+                    className="input-field textarea-field"
+                    value={activityContent}
+                    onChange={(e) => setActivityContent(e.target.value)}
+                    placeholder="Enter activity content, instructions, or paste image URL here..."
+                  ></textarea>
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => {
+                      setSelectedActivityForEdit(null); 
+                      setSelectedPageId(null);
+                      setActivityContent('');
+                    }}
+                    className="btn btn-accent"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveActivityContent}
+                    className="btn btn-primary"
+                  >
+                    Save Content
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* Fixed Preferences Button */}
+          <button
+            onClick={() => setShowPreferencesPanel(!showPreferencesPanel)}
+            className="preferences-toggle"
+          >
+            <Bot size={24} />
+          </button>
+          {/* Preferences Panel */}
+          {showPreferencesPanel && (
+            <div className="preferences-panel">
+              <h3 className="text-lg font-bold mb-4">Child Preferences</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="input-label">Age</label>
+                  <input 
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    className="input-field"
+                    placeholder="e.g. 7"
+                  />
+                </div>
+                <div>
+                  <label className="input-label">Interests/Genre</label>
+                  <input 
+                    type="text"
+                    value={genre}
+                    onChange={(e) => setGenre(e.target.value)}
+                    className="input-field"
+                    placeholder="e.g. Space, Animals"
+                  />
+                </div>
+                <div>
+                  <label className="input-label">Hobbies</label>
+                  <input 
+                    type="text"
+                    value={hobbies}
+                    onChange={(e) => setHobbies(e.target.value)}
+                    className="input-field"
+                    placeholder="e.g. Drawing, Reading"
+                  />
+                </div>
+                <button
+                  onClick={handlePreferencesSubmit}
+                  className="btn btn-accent w-full"
+                >
+                  Get Personalized Activities
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Activity Content Editor Modal */}
-        {selectedActivityForEdit && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold flex items-center">
-                  {renderIcon(selectedActivityForEdit.icon, 24)}
-                  <span className="ml-2">Edit {selectedActivityForEdit.name} Content</span>
-                </h3>
-                <button 
-                  onClick={() => {
-                    setSelectedActivityForEdit(null);
-                    setSelectedPageId(null);
-                    setActivityContent('');
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Activity Content or Instructions
-                </label>
-                <textarea
-                  className="w-full h-64 p-3 border rounded-lg"
-                  value={activityContent}
-                  onChange={(e) => setActivityContent(e.target.value)}
-                  placeholder="Enter activity content, instructions, or paste image URL here..."
-                ></textarea>
-              </div>
-              
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setSelectedActivityForEdit(null); 
-                    setSelectedPageId(null);
-                    setActivityContent('');
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={saveActivityContent}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Save Content
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Fixed Preferences Button */}
-        <button
-          onClick={() => setShowPreferencesPanel(!showPreferencesPanel)}
-          className="fixed bottom-4 right-4 bg-purple-600 text-white p-3 rounded-full shadow-lg hover:bg-purple-700 transition-colors"
-        >
-          <Settings size={24} />
-        </button>
-
-        {/* Preferences Panel */}
-        {showPreferencesPanel && (
-          <div className="fixed bottom-20 right-4 bg-white shadow-xl p-6 rounded-lg w-80">
-            <h3 className="text-lg font-bold mb-4">Child Preferences</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
-                <input 
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                  placeholder="e.g. 7"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Interests/Genre</label>
-                <input 
-                  type="text"
-                  value={genre}
-                  onChange={(e) => setGenre(e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                  placeholder="e.g. Space, Animals"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Hobbies</label>
-                <input 
-                  type="text"
-                  value={hobbies}
-                  onChange={(e) => setHobbies(e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                  placeholder="e.g. Drawing, Reading"
-                />
-              </div>
-              <button
-                onClick={handlePreferencesSubmit}
-                className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition-colors"
-              >
-                Get Personalized Activities
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
 
+  // Redesigned Home Page
   return (
-    <div className="min-h-screen bg-blue-50">
-      <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <nav className="container mx-auto p-4 flex justify-between items-center">
-          <h1 className="text-2xl md:text-3xl font-bold">KidActivity BookCreator</h1>
-          <div className="space-x-4">
-            <a href="#features" className="hover:text-blue-200 transition-colors">Features</a>
-            <a href="#about" className="hover:text-blue-200 transition-colors">About</a>
-            <button 
-              onClick={() => setCurrentPage('customizer')}
-              className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors"
-            >
-              Create Custom Book
-            </button>
+    <div className="home-bg">
+      <header className="home-header">
+        <div className="header-content">
+          <div className="header-nav">
+            <h1 className="home-title">KidActivity BookCreator</h1>
+            <div className="nav-links">
+              <a href="#features" className="home-link">Features</a>
+              <a href="#about" className="home-link">About</a>
+              <button 
+                onClick={() => setCurrentPage('customizer')}
+                className="hero-cta"
+              >
+                Start Creating <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
-        </nav>
-
-        <div className="container mx-auto py-16 px-4 flex flex-col md:flex-row items-center">
-          <div className="md:w-1/2 mb-8 md:mb-0">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">Create Personalized Activity Books for Your Child</h2>
-            <p className="text-lg mb-6">Engage their minds, spark creativity, and make learning fun with custom activities tailored to their interests and developmental needs.</p>
-            <button 
-              onClick={() => setCurrentPage('customizer')}
-              className="bg-yellow-400 text-blue-900 px-6 py-3 rounded-lg font-bold text-lg hover:bg-yellow-300 transition-colors flex items-center"
-            >
-              Start Creating <ChevronRight size={20} className="ml-2" />
-            </button>
-          </div>
-          <div className="md:w-1/2 flex justify-center">
-            <div className="bg-white rounded-lg shadow-xl p-6 transform rotate-3 w-64 h-80 relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Book size={64} className="text-blue-600" />
+          
+          <div className="hero-section">
+            <div className="flex flex-col md:flex-row items-center gap-12">
+              <div className="md:w-1/2">
+                <h2 className="hero-title">Create Amazing Activity Books for Kids</h2>
+                <p className="hero-desc">
+                  Build personalized learning experiences with our interactive activity book creator. 
+                  Perfect for parents and educators looking to engage children in fun, educational activities.
+                </p>
+                <button 
+                  onClick={() => setCurrentPage('customizer')}
+                  className="hero-cta"
+                >
+                  Start Your Book Now <ChevronRight size={20} />
+                </button>
               </div>
-              <div className="absolute -bottom-12 -right-12 bg-yellow-400 rounded-full w-24 h-24 flex items-center justify-center transform rotate-12">
-                <span className="font-bold text-blue-900">Fun!</span>
+              <div className="md:w-1/2 flex justify-center">
+                <div className="relative">
+                  <div className="fun-element bounce">
+                    <Book size={64} />
+                  </div>
+                  <div className="absolute -bottom-8 -right-8 fun-element pulse">
+                    <span>Fun!</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <section id="features" className="py-16 bg-white">
+      <section id="features" className="features-section">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-blue-800">Why Activity Books Matter</h2>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-blue-50 p-6 rounded-lg shadow-md">
-              <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                <Brain size={32} className="text-blue-600" />
+          <h2 className="features-title">Why Choose Our Activity Books?</h2>
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon">
+                <Brain size={32} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Cognitive Development</h3>
-              <p>Activity books enhance problem-solving skills and critical thinking through engaging puzzles and challenges.</p>
+              <h3 className="feature-head">Learning Through Play</h3>
+              <p className="feature-desc">Educational activities that make learning fun and engaging for children.</p>
             </div>
-            
-            <div className="bg-purple-50 p-6 rounded-lg shadow-md">
-              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                <Pencil size={32} className="text-purple-600" />
+            <div className="feature-card">
+              <div className="feature-icon">
+                <Pencil size={32} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Fine Motor Skills</h3>
-              <p>Drawing, tracing, and handwriting activities help develop fine motor control and hand-eye coordination.</p>
+              <h3 className="feature-head">Skill Development</h3>
+              <p className="feature-desc">Activities designed to improve motor skills and cognitive abilities.</p>
             </div>
-            
-            <div className="bg-green-50 p-6 rounded-lg shadow-md">
-              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                <Palette size={32} className="text-green-600" />
+            <div className="feature-card">
+              <div className="feature-icon">
+                <Palette size={32} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Creativity & Expression</h3>
-              <p>Art and creative activities provide children with healthy outlets for self-expression and imagination.</p>
+              <h3 className="feature-head">Creativity Boost</h3>
+              <p className="feature-desc">Spark imagination and self-expression through creative activities.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="about" className="py-16 bg-blue-50">
+      <section id="about" className="about-section">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8 text-blue-800">Create Books That Grow With Your Child</h2>
-          <p className="text-lg text-center max-w-3xl mx-auto mb-12">
-            Our custom activity book creator lets you build the perfect learning experience based on your child's age, interests, and development goals. Each page can be tailored to their specific needs.
+          <h2 className="about-title">How It Works</h2>
+          <p className="about-desc">
+            Create the perfect activity book in three simple steps, tailored to your child's interests and learning goals.
           </p>
-          
-          <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold mb-4 text-center">How It Works</h3>
-            <ol className="space-y-6">
-              <li className="flex items-start">
-                <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-4 flex-shrink-0">1</div>
-                <div>
-                  <h4 className="font-bold text-lg">Enter Your Child's Information</h4>
-                  <p>Share your child's age, interests, and learning goals to get personalized activity recommendations.</p>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-4 flex-shrink-0">2</div>
-                <div>
-                  <h4 className="font-bold text-lg">Drag & Drop Activities</h4>
-                  <p>Build your custom book by selecting from our library of educational and fun activities.</p>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-4 flex-shrink-0">3</div>
-                <div>
-                  <h4 className="font-bold text-lg">Generate & Download</h4>
-                  <p>Create your personalized activity book, ready to print or use digitally.</p>
-                </div>
-              </li>
-            </ol>
-            
-            <div className="mt-8 text-center">
-              <button 
-                onClick={() => setCurrentPage('customizer')}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-blue-700 transition-colors"
-              >
-                Start Creating Your Custom Book
-              </button>
+          <div className="about-steps">
+            <div className="step-card">
+              <div className="step-number">1</div>
+              <h4 className="step-title">Choose Activities</h4>
+              <p className="step-desc">Select from our library of educational and fun activities.</p>
             </div>
+            <div className="step-card">
+              <div className="step-number">2</div>
+              <h4 className="step-title">Customize Content</h4>
+              <p className="step-desc">Personalize each activity to match your child's interests.</p>
+            </div>
+            <div className="step-card">
+              <div className="step-number">3</div>
+              <h4 className="step-title">Create & Share</h4>
+              <p className="step-desc">Generate your book and share it with your children.</p>
+            </div>
+          </div>
+          <div className="text-center mt-12">
+            <button 
+              onClick={() => setCurrentPage('customizer')}
+              className="hero-cta"
+            >
+              Create Your Activity Book <ChevronRight size={20} />
+            </button>
           </div>
         </div>
       </section>
 
-      <footer className="bg-blue-900 text-white py-8">
-        <div className="container mx-auto px-4">
+      <footer className="home-footer">
+        <div className="footer-content">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <h2 className="text-2xl font-bold">KidActivity BookCreator</h2>
-              <p>Helping children learn through play</p>
+              <h2 className="footer-title">KidActivity BookCreator</h2>
+              <p>Making learning fun and engaging</p>
             </div>
-            <div>
+            <div className="text-sm opacity-90">
               <p>© 2025 KidActivity BookCreator. All rights reserved.</p>
             </div>
           </div>
